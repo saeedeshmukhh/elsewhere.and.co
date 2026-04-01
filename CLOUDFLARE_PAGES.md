@@ -2,21 +2,17 @@
 
 ## 1. Push this repo to GitHub or GitLab
 
-If you have not created a remote repository yet:
+This project already has a local `main` branch with an initial commit. You only need a remote and a push:
 
-1. Create a new **empty** repository on [GitHub](https://github.com/new) or GitLab (no README/license if you already have files locally).
+1. Create a new **empty** repository on [GitHub](https://github.com/new) or GitLab (no README, `.gitignore`, or license so you avoid merge conflicts).
 2. From this project folder:
 
 ```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
 git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
 git push -u origin main
 ```
 
-Replace the URL with your real repo URL (HTTPS or SSH).
+Replace the URL with your repository URL (HTTPS or SSH). If `git remote add` fails because `origin` exists, use `git remote set-url origin <url>` instead.
 
 ## 2. Connect Cloudflare Pages
 
