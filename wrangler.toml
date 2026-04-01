@@ -1,7 +1,8 @@
 # Cloudflare: local CLI uses this. Git deploys should either leave "Deploy command"
 # empty (Pages publishes `dist` automatically) OR use this assets config with
 # `npx wrangler deploy` if your project type requires it.
-name = "elsewhere"
+# Must match your Workers & Pages project name in the dashboard.
+name = "elsewhereandco"
 compatibility_date = "2025-04-01"
 
 [assets]
