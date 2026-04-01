@@ -1,0 +1,5 @@
+# Cloudflare Pages — deploy: npm run deploy
+# Create / link the project in the dashboard first, or Wrangler will prompt:
+# https://developers.cloudflare.com/pages/get-started/guide/
+name = "elsewhere"
+compatibility_date = "2025-04-01"

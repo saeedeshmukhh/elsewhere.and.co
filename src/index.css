@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --font-family-display: "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-family-body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-cream: #f7f4ef;
+  --color-cream-dark: #ebe6dd;
+  --color-charcoal: #2a2a2a;
+  --color-ink: #0d0d0d;
+  --color-warm-beige: #d4c4b0;
+  --color-muted: #6b6560;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html {
+    @apply antialiased scroll-smooth;
+    font-family: var(--font-family-body);
+    color: var(--color-ink);
+    background-color: var(--color-cream);
+  }
+
+  body {
+    @apply min-h-screen;
+  }
+
+  ::selection {
+    background-color: var(--color-ink);
+    color: var(--color-cream);
+  }
+}
