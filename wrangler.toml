@@ -1,5 +1,9 @@
-# Cloudflare Pages — deploy: npm run deploy
-# Create / link the project in the dashboard first, or Wrangler will prompt:
-# https://developers.cloudflare.com/pages/get-started/guide/
+# Cloudflare: local CLI uses this. Git deploys should either leave "Deploy command"
+# empty (Pages publishes `dist` automatically) OR use this assets config with
+# `npx wrangler deploy` if your project type requires it.
 name = "elsewhere"
 compatibility_date = "2025-04-01"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"

@@ -27,6 +27,7 @@ Replace the URL with your repository URL (HTTPS or SSH). If `git remote add` fai
 | Build command | `npm run build` |
 | Build output directory | `dist` |
 | Root directory | `/` (leave empty or `/` unless the app lives in a subfolder) |
+| **Deploy command** | **Leave empty / delete** (Pages uploads `dist` for you). Only if Cloudflare forces a value and the build fails with “Missing entry-point”, keep `npx wrangler deploy` — the repo’s `wrangler.toml` now points assets at `./dist`. |
 
 5. **Environment variables** (production):
 
