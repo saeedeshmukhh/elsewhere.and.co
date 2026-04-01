@@ -44,5 +44,6 @@ Replace the URL with your repository URL (HTTPS or SSH). If `git remote add` fai
 
 ## Notes
 
-- `public/_redirects` is copied into `dist` so React Router routes work on refresh.
-- `.node-version` is set to `22` for local/CI; Cloudflare still needs `NODE_VERSION` in the dashboard for predictable builds.
+- **Worker deploy (`npx wrangler deploy`):** SPA routing is handled by `wrangler.toml` → `[assets]` → `not_found_handling = "single-page-application"`. Do **not** add `public/_redirects` with `/* → /index.html` — Cloudflare rejects it as an infinite loop for this deploy type.
+- **Pages-only (no deploy command, output = `dist`):** If you switch to classic Pages, add `public/_redirects` again with one line: `/* /index.html 200` for deep links on refresh.
+- `.node-version` is `22`; set `NODE_VERSION=22` in the dashboard for predictable builds.
