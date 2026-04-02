@@ -62,7 +62,7 @@ export function Footer() {
             <ul className="mt-4 flex flex-col gap-3">
               <li>
                 <a
-                  href="https://instagram.com"
+                  href="https://www.instagram.com/elsewhere.and.co"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={link}

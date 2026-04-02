@@ -2,6 +2,8 @@
  * Product previews via Gemini native image generation (generateContent).
  * @see https://ai.google.dev/gemini-api/docs/image-generation
  */
+import { getDesignReferenceById } from '../src/data/designReferences'
+
 const GEMINI_GENERATE = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
 
@@ -14,6 +16,7 @@ const IMAGE_MODEL_CANDIDATES = [
 const MAX_CITY_LEN = 32
 const MAX_PROMPT_CHARS = 1200
 const BETWEEN_IMAGE_MS = 450
+const MAX_REFERENCE_B64_CHARS = 14_000_000
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -56,6 +59,17 @@ function buildPrompt(input: {
 
   const prompt = `${input.variationHint} One photorealistic product photo. ${garment} in ${input.baseColorLabel} (${input.fitLabel} fit). Chest print: strikethrough text "${input.usLine}", large bold text "${input.homeLine}".${tag} Studio lighting, neutral backdrop, no people, no faces, product only.`
 
+  return prompt.slice(0, MAX_PROMPT_CHARS)
+}
+
+function buildReferenceSwapPrompt(input: {
+  garmentPhrase: string
+  mainOnGarment: string
+  secondaryOnGarment: string
+  homeCity: string
+  sisterCity: string
+}): string {
+  const prompt = `Hey chat. Give me a picture of a ${input.garmentPhrase} that can be marketed online. Use this as the reference. Now just in place of ${input.mainOnGarment} write ${input.homeCity} and in place of ${input.secondaryOnGarment} write ${input.sisterCity}. Keep the rest same.`
   return prompt.slice(0, MAX_PROMPT_CHARS)
 }
 
@@ -126,16 +140,30 @@ function generationAttempts(): GenAttempt[] {
 async function generateOneImage(
   apiKey: string,
   model: string,
-  prompt: string
+  prompt: string,
+  referenceInline?: { mimeType: string; data: string }
 ): Promise<{ ok: true; dataUrl: string } | { ok: false; status: number; raw: unknown }> {
   const url = GEMINI_GENERATE(model)
+
+  const textPart = { text: prompt }
+  const parts: Array<Record<string, unknown>> = referenceInline
+    ? [
+        {
+          inlineData: {
+            mimeType: referenceInline.mimeType,
+            data: referenceInline.data,
+          },
+        },
+        textPart,
+      ]
+    : [textPart]
 
   for (const genCfg of generationAttempts()) {
     const body: Record<string, unknown> = {
       contents: [
         {
           role: 'user',
-          parts: [{ text: prompt }],
+          parts,
         },
       ],
     }
@@ -221,6 +249,69 @@ export async function handleDesignPreviewImages(
   }
 
   const b = body as Record<string, unknown>
+
+  const referenceId = sanitizeLine(b.referenceId, 48)
+  const refImageB64 =
+    typeof b.referenceImageBase64 === 'string' ? b.referenceImageBase64.replace(/\s/g, '') : ''
+  const refMimeRaw = sanitizeLine(b.referenceImageMime, 64) || 'image/png'
+  const refMime = refMimeRaw.includes('/') ? refMimeRaw : 'image/png'
+
+  if (referenceId && refImageB64) {
+    const ref = getDesignReferenceById(referenceId)
+    if (!ref) {
+      return json({ error: 'Unknown design reference', code: 'BAD_REFERENCE' }, 400)
+    }
+    if (refImageB64.length > MAX_REFERENCE_B64_CHARS) {
+      return json({ error: 'Reference image too large', code: 'IMAGE_TOO_LARGE' }, 413)
+    }
+
+    const homeCity = sanitizeLine(b.homeCity, MAX_CITY_LEN) || 'Home'
+    const sisterCity = sanitizeLine(b.usCity, MAX_CITY_LEN) || 'Sister city'
+
+    const prompt = buildReferenceSwapPrompt({
+      garmentPhrase: ref.garmentPhrase,
+      mainOnGarment: ref.mainCityOnGarment,
+      secondaryOnGarment: ref.secondaryCityOnGarment,
+      homeCity,
+      sisterCity,
+    })
+
+    let lastError = ''
+    for (const model of IMAGE_MODEL_CANDIDATES) {
+      const result = await generateOneImage(apiKey, model, prompt, {
+        mimeType: refMime,
+        data: refImageB64,
+      })
+
+      if (result.ok) {
+        return json({ images: [result.dataUrl] })
+      }
+
+      lastError = parseApiError(result.raw) || `Request failed (${result.status})`
+      if (isModelNotFound(result.status, result.raw)) {
+        continue
+      }
+      return json(
+        {
+          error: lastError,
+          code: 'GEMINI_IMAGE_ERROR',
+          status: result.status,
+        },
+        502
+      )
+    }
+
+    return json(
+      {
+        error:
+          lastError ||
+          'No image model worked. Enable Gemini image models on your API key or check billing/quota.',
+        code: 'GEMINI_IMAGE_ERROR',
+      },
+      502
+    )
+  }
+
   const garment = b.garment === 't-shirt' ? 't-shirt' : 'hoodie'
   const baseColorLabel = sanitizeLine(b.baseColorLabel, 24) || 'black'
   const fitLabel = sanitizeLine(b.fitLabel, 20) || 'relaxed'

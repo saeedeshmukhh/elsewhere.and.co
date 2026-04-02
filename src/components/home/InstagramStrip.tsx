@@ -14,14 +14,14 @@ export function InstagramStrip() {
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-              @elsewhereandco
+              @elsewhere.and.co
             </p>
             <h2 className="font-display mt-2 text-xl font-bold md:text-2xl">
               On the grid
             </h2>
           </div>
           <a
-            href="https://instagram.com"
+            href="https://www.instagram.com/elsewhere.and.co"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-medium text-ink underline-offset-4 hover:underline"

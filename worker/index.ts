@@ -1,6 +1,7 @@
 /** Cloudflare Worker: static SPA + `/api/*` (Stripe when PAYMENTS_ENABLED, Gemini design previews). */
 import { CHECKOUT_CATALOG } from '../src/data/checkoutCatalog'
 import { handleDesignPreviewImages } from './geminiDesignImages'
+import { handleWaitlistInquiry } from './waitlistInquiry'
 
 const PAYMENTS_ENABLED = false
 
@@ -9,6 +10,8 @@ export interface Env {
   STRIPE_SECRET_KEY: string
   /** Google AI Studio API key (Gemini image models via generateContent). Never expose to the client. */
   GEMINI_API_KEY?: string
+  /** Override notify address for FormSubmit (default: saideshmukhh@gmail.com) */
+  WAITLIST_TO_EMAIL?: string
 }
 
 interface LineInput {
@@ -26,6 +29,10 @@ export default {
 
     if (url.pathname === '/api/design-preview-images') {
       return handleDesignPreviewImages(request, env.GEMINI_API_KEY)
+    }
+
+    if (url.pathname === '/api/waitlist') {
+      return handleWaitlistInquiry(request, env)
     }
 
     if (url.pathname.startsWith('/api/')) {

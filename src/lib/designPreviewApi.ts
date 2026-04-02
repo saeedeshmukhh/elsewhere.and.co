@@ -11,6 +11,10 @@ export interface DesignPreviewPayload {
   homeCity: string
   showTagline: boolean
   layout: DesignLayoutResult
+  /** When set with base64 image, Worker uses drop reference + city-swap prompt for Gemini. */
+  referenceId?: string
+  referenceImageBase64?: string
+  referenceImageMime?: string
 }
 
 export type PreviewMode = 'gemini' | 'offline'
@@ -42,14 +46,42 @@ function offlineResult(
   }
 }
 
+/** Fetch a same-origin public asset and return raw base64 + MIME for the Worker. */
+export async function loadPublicImageAsBase64(path: string): Promise<{
+  data: string
+  mime: string
+}> {
+  const res = await fetch(path)
+  if (!res.ok) {
+    throw new Error(`Could not load reference image (${res.status})`)
+  }
+  const blob = await res.blob()
+  const mime = blob.type || 'image/png'
+  const buf = await blob.arrayBuffer()
+  const bytes = new Uint8Array(buf)
+  let binary = ''
+  const chunk = 8192
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunk, bytes.length)))
+  }
+  return { data: btoa(binary), mime }
+}
+
 /**
  * Calls Worker → Gemini when available; otherwise SVG layout previews (always usable).
+ * Reference-based payloads return empty `images` on failure (no mockups).
  */
 export async function requestDesignPreviewImages(
   payload: DesignPreviewPayload,
   options?: { textOnDark?: boolean }
 ): Promise<DesignPreviewResult> {
   const textOnDark = options?.textOnDark ?? true
+  const isReference = Boolean(payload.referenceId && payload.referenceImageBase64)
+
+  const emptyFail = (): DesignPreviewResult => ({
+    images: [],
+    mode: 'offline',
+  })
 
   try {
     const res = await fetch('/api/design-preview-images', {
@@ -65,10 +97,16 @@ export async function requestDesignPreviewImages(
     }
 
     if (res.ok && Array.isArray(data.images) && data.images.length > 0) {
-      return { images: data.images.slice(0, 3), mode: 'gemini' }
+      const max =
+        payload.referenceId && payload.referenceImageBase64 ? 1 : 3
+      return { images: data.images.slice(0, max), mode: 'gemini' }
     }
 
     const errMsg = data.error || `HTTP ${res.status}`
+
+    if (isReference) {
+      return emptyFail()
+    }
 
     if (res.status === 503 && data.code === 'GEMINI_MISSING') {
       return offlineResult(payload, textOnDark, `${OFFLINE_HINT} (${errMsg})`)
@@ -80,6 +118,9 @@ export async function requestDesignPreviewImages(
       `Gemini did not return images: ${errMsg}. Showing layout mockups.`
     )
   } catch {
+    if (isReference) {
+      return emptyFail()
+    }
     return offlineResult(
       payload,
       textOnDark,

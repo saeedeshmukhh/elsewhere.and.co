@@ -6,7 +6,6 @@ import { Accordion } from '../components/product/Accordion'
 import { ProductBadges } from '../components/product/ProductBadges'
 import { useCart } from '../context/useCart'
 import { canAddProductToCart, getCartBlockReason } from '../lib/cartRules'
-import { waitlistMailto } from '../lib/waitlist'
 
 export function ProductDetail() {
   const { slug } = useParams<{ slug: string }>()
@@ -62,10 +61,6 @@ function ProductDetailContent({ product }: { product: Product }) {
       quantity: qty,
     })
   }
-
-  const waitlistHref = waitlistMailto(
-    `Waitlist: ${product.name}\nSize: ${size}\nColor: ${primaryColor}`
-  )
 
   const imageCount = gallery.length
   const goPrevImage = () => {
@@ -277,12 +272,12 @@ function ProductDetailContent({ product }: { product: Product }) {
             >
               Add to cart
             </button>
-            <a
-              href={waitlistHref}
+            <Link
+              to="/contact"
               className="flex min-h-[52px] flex-1 items-center justify-center border border-cream-dark py-3 text-center text-sm font-semibold uppercase tracking-widest text-ink transition-colors hover:border-ink"
             >
               Join waitlist
-            </a>
+            </Link>
           </div>
 
           <div className="mt-14">

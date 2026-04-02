@@ -9,25 +9,11 @@ import {
   CheckoutRequestError,
   startHostedCheckout,
 } from '../lib/checkout'
-import { waitlistMailto } from '../lib/waitlist'
-
-function waitlistHrefForLines(lines: CartLine[]): string {
-  if (!lines.length) return waitlistMailto()
-  const body = lines
-    .map((l) => {
-      const p = getProductById(l.productId)
-      return p ? `${p.name} ×${l.quantity}` : l.productId
-    })
-    .join('\n')
-  return waitlistMailto(`Cart waitlist\n${body}`)
-}
 
 function OrderSummaryAside({
   subtotal,
-  waitlistHref,
 }: {
   subtotal: number
-  waitlistHref: string
 }) {
   return (
     <aside className="h-fit border border-ink/15 bg-asphalt/5 p-8">
@@ -41,12 +27,12 @@ function OrderSummaryAside({
       <p className="mt-4 text-xs leading-relaxed text-muted">
         Pre-launch: no charges yet. Join the waitlist to hear when checkout opens.
       </p>
-      <a
-        href={waitlistHref}
+      <Link
+        to="/contact"
         className="mt-8 flex w-full items-center justify-center border border-ink bg-ink py-4 text-sm font-semibold uppercase tracking-widest text-cream transition-colors hover:bg-clay"
       >
         Join waitlist
-      </a>
+      </Link>
       <Link
         to="/shop"
         className="mt-4 block text-center text-sm text-muted hover:text-ink"
@@ -132,7 +118,6 @@ export function CartPage() {
   const [searchParams] = useSearchParams()
   const { lines, updateQuantity, removeLine, subtotal } = useCart()
   const checkoutStatus = searchParams.get('checkout')
-  const waitlistHref = waitlistHrefForLines(lines)
 
   return (
     <div className="mx-auto max-w-[1100px] px-5 py-16 md:px-8">
@@ -244,7 +229,7 @@ export function CartPage() {
           {PAYMENTS_ENABLED ? (
             <StripeOrderSummaryAside lines={lines} subtotal={subtotal} />
           ) : (
-            <OrderSummaryAside subtotal={subtotal} waitlistHref={waitlistHref} />
+            <OrderSummaryAside subtotal={subtotal} />
           )}
         </div>
       )}

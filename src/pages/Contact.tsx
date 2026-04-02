@@ -1,10 +1,13 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   isValidEmail,
   isHoneypotClean,
   LIMITS,
   sanitizePlainText,
 } from '../lib/validation'
+import { submitContactInquiry } from '../lib/contactSubmit'
+
 export function Contact() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -12,8 +15,9 @@ export function Contact() {
   const [website, setWebsite] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
+  const [sending, setSending] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
@@ -39,10 +43,22 @@ export function Contact() {
       return
     }
 
-    const subject = encodeURIComponent(`Elsewhere and Co. — ${n}`)
-    const body = encodeURIComponent(`${msg}\n\n— ${n}\n${em}`)
-    window.location.href = `mailto:hello@elsewhere.studio?subject=${subject}&body=${body}`
-    setSent(true)
+    setSending(true)
+    const result = await submitContactInquiry({
+      name: n,
+      email: em,
+      message: msg,
+    })
+    setSending(false)
+
+    if (result.ok) {
+      setSent(true)
+      setName('')
+      setEmail('')
+      setMessage('')
+    } else {
+      setError(result.error)
+    }
   }
 
   return (
@@ -54,20 +70,45 @@ export function Contact() {
         Get in touch
       </h1>
       <p className="mt-4 text-muted">
-        Wholesale, press, or a question about an order — we read everything.
-        For spam resistance, wire this form to a Worker + Resend or Cloudflare
-        Turnstile later; for now it opens your email client with a safe draft.
+        Wholesale, waitlist, or a question about an order — feel free to send a note and
+        we&apos;ll reply by email.
       </p>
 
       {sent && !error ? (
-        <p className="mt-10 text-sm text-muted">
-          If your mail app opened, send the draft from there. If nothing
-          happened, email{' '}
-          <a className="underline" href="mailto:hello@elsewhere.studio">
-            hello@elsewhere.studio
-          </a>
-          .
-        </p>
+        <div
+          className="mt-12 border-l-4 border-ink bg-cream-dark/20 px-8 py-10 md:px-10"
+          role="status"
+          aria-live="polite"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
+            Inbox
+          </p>
+          <h2 className="font-display mt-5 text-2xl font-bold tracking-tight text-ink md:text-[1.75rem]">
+            We read every note.
+          </h2>
+          <p className="mt-4 max-w-md text-base leading-relaxed text-charcoal">
+            Yours is in the queue. We&apos;ll answer from the studio at the address you left
+            above — usually within a couple of days, sooner when we can.
+          </p>
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-muted">
+            If this was about a custom route or the drop, mention it in a follow-up anytime.
+          </p>
+          <button
+            type="button"
+            onClick={() => setSent(false)}
+            className="mt-8 text-xs font-semibold uppercase tracking-[0.2em] text-ink underline-offset-4 hover:underline"
+          >
+            Send another message
+          </button>
+          <div className="mt-10 border-t border-cream-dark pt-8">
+            <Link
+              to="/shop"
+              className="text-xs font-semibold uppercase tracking-[0.2em] text-muted transition-colors hover:text-ink"
+            >
+              ← Back to shop
+            </Link>
+          </div>
+        </div>
       ) : (
         <form className="mt-12 space-y-6" onSubmit={handleSubmit} noValidate>
           <input
@@ -130,9 +171,10 @@ export function Contact() {
           )}
           <button
             type="submit"
-            className="w-full border border-ink bg-ink py-3.5 text-sm font-semibold uppercase tracking-widest text-cream transition-colors hover:bg-cream hover:text-ink"
+            disabled={sending}
+            className="w-full border border-ink bg-ink py-3.5 text-sm font-semibold uppercase tracking-widest text-cream transition-colors hover:bg-cream hover:text-ink disabled:opacity-50"
           >
-            Open email draft
+            {sending ? 'Sending…' : 'Send message'}
           </button>
         </form>
       )}
