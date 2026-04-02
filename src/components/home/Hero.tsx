@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 
-const heroImg =
-  'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=1400&h=1800&q=80'
+const heroImg = '/products/california-pune/01.png'
 
 export function Hero() {
   return (

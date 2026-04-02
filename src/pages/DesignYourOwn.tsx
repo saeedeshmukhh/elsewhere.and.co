@@ -35,7 +35,8 @@ export function DesignYourOwn() {
   const [showTagline, setShowTagline] = useState(true)
   const [previewBusy, setPreviewBusy] = useState(false)
   const [aiImages, setAiImages] = useState<string[]>([])
-  const [aiError, setAiError] = useState<string | null>(null)
+  const [previewHint, setPreviewHint] = useState<string | null>(null)
+  const [previewSource, setPreviewSource] = useState<'none' | 'gemini' | 'offline'>('none')
 
   const selectedColor = useMemo(
     () => BASE_COLORS.find((c) => c.id === colorId) ?? BASE_COLORS[0]!,
@@ -58,10 +59,10 @@ export function DesignYourOwn() {
 
   const handlePreviewDesign = useCallback(async () => {
     setPreviewBusy(true)
-    setAiError(null)
-    try {
-      const fitLabel = FIT_OPTIONS.find((f) => f.id === fitId)?.label ?? 'Relaxed'
-      const images = await requestDesignPreviewImages({
+    setPreviewHint(null)
+    const fitLabel = FIT_OPTIONS.find((f) => f.id === fitId)?.label ?? 'Relaxed'
+    const result = await requestDesignPreviewImages(
+      {
         garment,
         baseColorLabel: selectedColor.label,
         baseColorHex: selectedColor.hex,
@@ -70,14 +71,13 @@ export function DesignYourOwn() {
         homeCity,
         showTagline,
         layout: liveLayout,
-      })
-      setAiImages(images.slice(0, 3))
-    } catch (e) {
-      setAiImages([])
-      setAiError(e instanceof Error ? e.message : 'Something went wrong.')
-    } finally {
-      setPreviewBusy(false)
-    }
+      },
+      { textOnDark: !selectedColor.darkText }
+    )
+    setAiImages(result.images)
+    setPreviewSource(result.mode)
+    setPreviewHint(result.hint ?? null)
+    setPreviewBusy(false)
     scrollToPreview()
   }, [
     garment,
@@ -247,7 +247,7 @@ export function DesignYourOwn() {
               disabled={previewBusy}
               className="min-h-[52px] border border-ink bg-ink px-8 py-3 text-sm font-semibold uppercase tracking-widest text-cream transition-colors hover:bg-cream hover:text-ink disabled:opacity-50"
             >
-              {previewBusy ? 'Generating…' : 'Preview design (Gemini)'}
+              {previewBusy ? 'Generating…' : 'Preview design'}
             </button>
             <a
               href={waitlistMailto(waitlistBody)}
@@ -290,36 +290,50 @@ export function DesignYourOwn() {
 
           <div className="mt-12 border-t border-cream-dark pt-10">
             <h3 className="font-street text-xs font-normal uppercase tracking-[0.2em] text-muted">
-              AI previews (3 variants)
+              Previews (3 variants)
             </h3>
-            {aiError && (
-              <p className="mt-4 text-sm text-red-800" role="alert">
-                {aiError}
+            {previewBusy && (
+              <p className="mt-4 text-sm text-muted">Contacting Gemini…</p>
+            )}
+            {previewHint && !previewBusy && (
+              <p
+                className={`mt-4 border px-3 py-2 text-xs leading-relaxed ${
+                  previewSource === 'offline'
+                    ? 'border-amber-800/30 bg-amber-50/80 text-amber-950'
+                    : 'border-cream-dark text-muted'
+                }`}
+                role="status"
+              >
+                {previewHint}
               </p>
             )}
-            {previewBusy && (
-              <p className="mt-4 text-sm text-muted">Generating with Gemini…</p>
+            {!previewBusy && previewSource === 'gemini' && (
+              <p className="mt-3 text-xs text-muted">Photorealistic previews from Google Gemini.</p>
             )}
             {!previewBusy && aiImages.length > 0 && (
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 {aiImages.map((src, i) => (
                   <div
-                    key={`${i}-${src.slice(0, 32)}`}
+                    key={`${i}-${src.slice(0, 48)}`}
                     className="overflow-hidden border border-ink/10 bg-cream"
                   >
                     <img
                       src={src}
-                      alt={`AI-generated design option ${i + 1}`}
-                      className="aspect-[3/4] h-full w-full object-cover"
+                      alt={
+                        previewSource === 'gemini'
+                          ? `Generated design option ${i + 1}`
+                          : `Layout preview ${i + 1}`
+                      }
+                      className="aspect-[3/4] h-full w-full object-cover object-top"
                     />
                   </div>
                 ))}
               </div>
             )}
-            {!previewBusy && aiImages.length === 0 && !aiError && (
+            {!previewBusy && aiImages.length === 0 && (
               <p className="mt-4 text-xs text-muted">
-                Tap “Preview design (Gemini)” to generate three image variants from your cities and
-                colors.
+                Tap “Preview design” for three variants (AI when configured, otherwise layout
+                mockups).
               </p>
             )}
           </div>

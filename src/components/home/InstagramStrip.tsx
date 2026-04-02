@@ -1,8 +1,8 @@
 const shots = [
-  '/products/miami-goa-tee.png',
+  '/products/mumbai-nyc/05.png',
   '/products/california-pune-sweatshirt.png',
   '/products/nyc-thane-hoodie.png',
-  '/products/miami-goa-tee.png',
+  '/products/mumbai-nyc/05.png',
   '/products/california-pune-sweatshirt.png',
   '/products/nyc-thane-hoodie.png',
 ]

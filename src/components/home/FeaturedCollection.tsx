@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import {
   getCollectionBySlug,
-  getRootsHoodies,
+  getRootsBestSellerTops,
   getRootsTees,
 } from '../../data/catalog'
 import { ProductCard } from '../product/ProductCard'
@@ -10,7 +10,7 @@ export function FeaturedCollection() {
   const col = getCollectionBySlug('roots-remain')
   if (!col) return null
 
-  const hoodies = getRootsHoodies()
+  const bestSellerTops = getRootsBestSellerTops()
   const tees = getRootsTees()
 
   return (
@@ -40,15 +40,15 @@ export function FeaturedCollection() {
                   Best sellers
                 </p>
                 <h3 className="font-display mt-2 text-2xl font-bold md:text-3xl">
-                  Hoodies
+                  Hoodies &amp; fleece
                 </h3>
                 <p className="mt-2 max-w-lg text-sm text-muted">
-                  Featured first — two heavyweight crossovers from the first drop.
+                  Featured first — vintage crew and heavyweight hoodie from the drop.
                 </p>
               </div>
             </div>
             <div className="mt-10 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:max-w-4xl lg:mx-auto">
-              {hoodies.map((p) => (
+              {bestSellerTops.map((p) => (
                 <ProductCard
                   key={p.id}
                   product={p}

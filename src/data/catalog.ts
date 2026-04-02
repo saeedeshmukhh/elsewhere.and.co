@@ -47,6 +47,15 @@ export function getRootsHoodies(): Product[] {
   )
 }
 
+/** Best-seller tops: hoodies + sweatshirts (collection order). */
+export function getRootsBestSellerTops(): Product[] {
+  return getProductsByCollectionSlug('roots-remain').filter(
+    (p) =>
+      p.shopTags.includes('best-sellers') &&
+      (p.category === 'hoodies' || p.category === 'sweatshirts')
+  )
+}
+
 export function getRootsTees(): Product[] {
   return getProductsByCollectionSlug('roots-remain').filter(
     (p) => p.category === 't-shirts'

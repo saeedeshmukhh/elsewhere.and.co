@@ -8,11 +8,10 @@ export const collections: Collection[] = [
     name: 'Roots Remain',
     description:
       'City crossovers — wear the route you carry between two homes.',
-    heroImage:
-      'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=1600&h=1000&q=80',
+    heroImage: '/products/california-pune/01.png',
     releaseStatus: 'active',
     featured: true,
-    productIds: ['p1', 'p2', 'p3', 'p4', 'p5'],
+    productIds: ['p1', 'p4', 'p2', 'p6', 'p5', 'p3'],
     launchDate: '2025-03-01',
     badge: 'new',
     story:

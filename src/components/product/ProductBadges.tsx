@@ -15,6 +15,7 @@ const LABELS: Record<string, string> = {
 
 const SHOP_TAG_LABELS: Record<ShopTag, string> = {
   hoodies: 'Hoodies',
+  sweatshirts: 'Sweatshirts',
   't-shirts': 'T-Shirts',
   'best-sellers': 'Best sellers',
 }

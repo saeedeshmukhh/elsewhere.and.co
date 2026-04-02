@@ -12,6 +12,7 @@ const tagFilters: { id: TagFilter; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'best-sellers', label: 'Best sellers' },
   { id: 'hoodies', label: 'Hoodies' },
+  { id: 'sweatshirts', label: 'Sweatshirts' },
   { id: 't-shirts', label: 'T-Shirts' },
 ]
 
@@ -71,7 +72,7 @@ export function Shop() {
         </p>
         <p className="mt-3 font-desi text-sm text-muted">चुनो · पहनो · भेजो</p>
         <p className="mt-4 max-w-xl text-muted">
-          Roots Remain — five curated pieces. Hoodies are featured as best sellers; tees follow.
+          Roots Remain — six curated pieces. Sweatshirts and hoodies first; tees follow.
           Checkout is paused until launch.
         </p>
       </header>

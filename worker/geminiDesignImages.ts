@@ -1,19 +1,19 @@
 /**
- * Product preview images via Gemini native image generation (Nano Banana family).
- * Imagen `:predict` requires a paid plan; this path uses generateContent instead.
+ * Product previews via Gemini native image generation (generateContent).
  * @see https://ai.google.dev/gemini-api/docs/image-generation
  */
 const GEMINI_GENERATE = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
 
-/** Try in order — first available on your key wins per request batch */
 const IMAGE_MODEL_CANDIDATES = [
   'gemini-2.5-flash-image',
   'gemini-3.1-flash-image-preview',
+  'gemini-3-pro-image-preview',
 ] as const
 
 const MAX_CITY_LEN = 32
 const MAX_PROMPT_CHARS = 1200
+const BETWEEN_IMAGE_MS = 450
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -23,6 +23,10 @@ function json(data: unknown, status = 200): Response {
       'Cache-Control': 'no-store',
     },
   })
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms))
 }
 
 function sanitizeLine(s: unknown, max: number): string {
@@ -47,10 +51,10 @@ function buildPrompt(input: {
       ? 'plain short-sleeve t-shirt'
       : 'pullover hoodie without zipper'
   const tag = input.tagline
-    ? ` Small tagline below main text: "${input.tagline.slice(0, 24)}".`
+    ? ` Small tagline: "${input.tagline.slice(0, 24)}".`
     : ' No extra tagline.'
 
-  const prompt = `${input.variationHint} Single square-ready product image. ${garment} in solid ${input.baseColorLabel} (${input.fitLabel} fit). Front/chest area: premium minimal streetwear graphic — smaller line with strikethrough: "${input.usLine}", large bold condensed sans-serif: "${input.homeLine}".${tag} Studio lighting, neutral backdrop, no people, no faces, no hands, ghost mannequin or flat catalog style, photorealistic.`
+  const prompt = `${input.variationHint} One photorealistic product photo. ${garment} in ${input.baseColorLabel} (${input.fitLabel} fit). Chest print: strikethrough text "${input.usLine}", large bold text "${input.homeLine}".${tag} Studio lighting, neutral backdrop, no people, no faces, product only.`
 
   return prompt.slice(0, MAX_PROMPT_CHARS)
 }
@@ -65,22 +69,58 @@ function parseApiError(raw: unknown): string {
 
 function extractFirstImageDataUrl(data: unknown): string | null {
   const root = data as {
+    promptFeedback?: { blockReason?: string }
     candidates?: Array<{
       content?: { parts?: Array<Record<string, unknown>> }
+      finishReason?: string
     }>
   }
-  const parts = root.candidates?.[0]?.content?.parts
-  if (!Array.isArray(parts)) return null
-  for (const part of parts) {
-    const inline = (part.inlineData ?? part.inline_data) as
-      | { mimeType?: string; mime_type?: string; data?: string }
-      | undefined
-    if (inline?.data && typeof inline.data === 'string') {
-      const mime = inline.mimeType || inline.mime_type || 'image/png'
-      return `data:${mime};base64,${inline.data}`
+
+  for (const c of root.candidates ?? []) {
+    const parts = c.content?.parts
+    if (!Array.isArray(parts)) continue
+    for (const part of parts) {
+      if (!part || typeof part !== 'object') continue
+      const inline = (part.inlineData ?? part.inline_data) as
+        | { mimeType?: string; mime_type?: string; data?: string }
+        | undefined
+      if (inline?.data && typeof inline.data === 'string') {
+        const mime = inline.mimeType || inline.mime_type || 'image/png'
+        return `data:${mime};base64,${inline.data}`
+      }
     }
   }
   return null
+}
+
+function blockHint(raw: unknown): string | null {
+  const r = raw as {
+    promptFeedback?: { blockReason?: string }
+    candidates?: Array<{ finishReason?: string }>
+  }
+  const br = r.promptFeedback?.blockReason
+  if (br) return `Blocked: ${br}`
+  const fr = r.candidates?.[0]?.finishReason
+  if (fr && fr !== 'STOP') return `Finish: ${fr}`
+  return null
+}
+
+type GenAttempt = Record<string, unknown> | null
+
+function generationAttempts(): GenAttempt[] {
+  return [
+    {
+      responseModalities: ['TEXT', 'IMAGE'],
+      imageConfig: { aspectRatio: '3:4' },
+    },
+    {
+      responseModalities: ['TEXT', 'IMAGE'],
+    },
+    {
+      responseModalities: ['IMAGE'],
+    },
+    null,
+  ]
 }
 
 async function generateOneImage(
@@ -89,36 +129,21 @@ async function generateOneImage(
   prompt: string
 ): Promise<{ ok: true; dataUrl: string } | { ok: false; status: number; raw: unknown }> {
   const url = GEMINI_GENERATE(model)
-  const body: Record<string, unknown> = {
-    contents: [
-      {
-        role: 'user',
-        parts: [{ text: prompt }],
-      },
-    ],
-    generationConfig: {
-      responseModalities: ['TEXT', 'IMAGE'],
-      imageConfig: {
-        aspectRatio: '3:4',
-      },
-    },
-  }
 
-  let res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': apiKey.trim(),
-    },
-    body: JSON.stringify(body),
-  })
+  for (const genCfg of generationAttempts()) {
+    const body: Record<string, unknown> = {
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: prompt }],
+        },
+      ],
+    }
+    if (genCfg !== null) {
+      body.generationConfig = genCfg
+    }
 
-  let raw = await res.json().catch(() => ({}))
-
-  // Some keys/models reject imageConfig — retry without it
-  if (!res.ok && parseApiError(raw).toLowerCase().includes('imageconfig')) {
-    delete (body.generationConfig as Record<string, unknown>).imageConfig
-    res = await fetch(url, {
+    let res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -126,18 +151,38 @@ async function generateOneImage(
       },
       body: JSON.stringify(body),
     })
-    raw = await res.json().catch(() => ({}))
+
+    let raw = await res.json().catch(() => ({}))
+
+    if (res.status === 429) {
+      await sleep(2000)
+      res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey.trim(),
+        },
+        body: JSON.stringify(body),
+      })
+      raw = await res.json().catch(() => ({}))
+    }
+
+    if (!res.ok) {
+      continue
+    }
+
+    const dataUrl = extractFirstImageDataUrl(raw)
+    if (dataUrl) {
+      return { ok: true, dataUrl }
+    }
+
+    const hint = blockHint(raw)
+    if (hint) {
+      return { ok: false, status: 422, raw: { error: { message: hint } } }
+    }
   }
 
-  if (!res.ok) {
-    return { ok: false, status: res.status, raw }
-  }
-
-  const dataUrl = extractFirstImageDataUrl(raw)
-  if (!dataUrl) {
-    return { ok: false, status: 502, raw }
-  }
-  return { ok: true, dataUrl }
+  return { ok: false, status: 502, raw: { error: { message: 'No image in response after retries' } } }
 }
 
 function isModelNotFound(status: number, raw: unknown): boolean {
@@ -153,7 +198,7 @@ export async function handleDesignPreviewImages(
     return json(
       {
         error:
-          'GEMINI_API_KEY is not set on the Worker. Use: wrangler secret put GEMINI_API_KEY (production) or .dev.vars for local dev.',
+          'GEMINI_API_KEY is not set. Add to .dev.vars locally or wrangler secret put GEMINI_API_KEY.',
         code: 'GEMINI_MISSING',
       },
       503
@@ -189,9 +234,9 @@ export async function handleDesignPreviewImages(
     : ''
 
   const variationHints = [
-    'Image 1 of 3: straight-on studio product shot, centered.',
-    'Image 2 of 3: slight three-quarter view, same chest graphic.',
-    'Image 3 of 3: softer diffuse lighting, same design and colors.',
+    'Image 1 of 3: straight-on studio shot.',
+    'Image 2 of 3: three-quarter view, same graphic.',
+    'Image 3 of 3: softer light, same design.',
   ]
 
   const prompts = variationHints.map((hint) =>
@@ -213,6 +258,8 @@ export async function handleDesignPreviewImages(
     let modelFailed = false
 
     for (let i = 0; i < prompts.length; i++) {
+      if (i > 0) await sleep(BETWEEN_IMAGE_MS)
+
       const result = await generateOneImage(apiKey, model, prompts[i]!)
 
       if (!result.ok) {
@@ -257,7 +304,7 @@ export async function handleDesignPreviewImages(
     {
       error:
         lastError ||
-        'Could not generate images. Check your API key, model access, and quotas.',
+        'No image model worked. Enable Gemini image models on your API key or check billing/quota.',
       code: 'GEMINI_IMAGE_ERROR',
     },
     502

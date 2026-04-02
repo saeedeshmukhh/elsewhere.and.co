@@ -67,6 +67,16 @@ function ProductDetailContent({ product }: { product: Product }) {
     `Waitlist: ${product.name}\nSize: ${size}\nColor: ${primaryColor}`
   )
 
+  const imageCount = gallery.length
+  const goPrevImage = () => {
+    if (imageCount <= 1) return
+    setActiveImage((i) => (i - 1 + imageCount) % imageCount)
+  }
+  const goNextImage = () => {
+    if (imageCount <= 1) return
+    setActiveImage((i) => (i + 1) % imageCount)
+  }
+
   return (
     <div className="mx-auto max-w-[1400px] px-5 py-12 md:px-8 md:py-16">
       <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium uppercase tracking-widest text-muted">
@@ -88,16 +98,40 @@ function ProductDetailContent({ product }: { product: Product }) {
 
       <div className="mt-10 grid gap-12 lg:grid-cols-2 lg:gap-16 xl:gap-24">
         <div>
-          <div className="aspect-[3/4] overflow-hidden bg-cream-dark/30">
+          <div className="relative aspect-[3/4] overflow-hidden bg-cream-dark/30">
             <img
               src={gallery[activeImage] ?? product.image}
               alt={product.name}
               className="h-full w-full object-cover"
               referrerPolicy="no-referrer-when-downgrade"
             />
+            {imageCount > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={goPrevImage}
+                  className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-ink/15 bg-cream/90 text-lg font-semibold text-ink shadow-sm backdrop-blur-sm transition-colors hover:border-ink/40 hover:bg-cream md:left-3 md:h-12 md:w-12"
+                  aria-label="Previous image"
+                >
+                  <span aria-hidden className="-mt-px block">
+                    ←
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={goNextImage}
+                  className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-ink/15 bg-cream/90 text-lg font-semibold text-ink shadow-sm backdrop-blur-sm transition-colors hover:border-ink/40 hover:bg-cream md:right-3 md:h-12 md:w-12"
+                  aria-label="Next image"
+                >
+                  <span aria-hidden className="-mt-px block">
+                    →
+                  </span>
+                </button>
+              </>
+            )}
           </div>
           {gallery.length > 1 && (
-            <div className="mt-4 grid grid-cols-4 gap-3">
+            <div className="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-6">
               {gallery.map((src, i) => (
                 <button
                   key={src}

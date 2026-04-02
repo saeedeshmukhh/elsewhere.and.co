@@ -1,6 +1,6 @@
-export type ProductCategory = 'hoodies' | 't-shirts'
+export type ProductCategory = 'hoodies' | 'sweatshirts' | 't-shirts'
 
-export type ShopTag = 'hoodies' | 't-shirts' | 'best-sellers'
+export type ShopTag = 'hoodies' | 'sweatshirts' | 't-shirts' | 'best-sellers'
 
 export type StockStatus = 'in_stock' | 'low_stock' | 'sold_out' | 'coming_soon'
 
