@@ -4,7 +4,7 @@ Premium streetwear storefront: **Roots Remain** collection (five pieces), **Desi
 
 ## Live site
 
-**Production:** [https://elsewhereandco.workers.dev](https://elsewhereandco.workers.dev)
+**Production:** [https://elsewhereandco.shop/](https://elsewhereandco.shop/)
 
 > If that link does not match your account, open **Cloudflare → Workers & Pages → `elsewhereandco`** and copy the exact `*.workers.dev` hostname (or your custom domain). Update this README if you use a different URL.
 
