@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
+import { PAYMENTS_ENABLED } from '../../config/storefront'
 import { useCart } from '../../context/useCart'
-import { getProductById } from '../../data/products'
+import { getProductById } from '../../data/catalog'
 
 export function CartDrawer() {
   const {
@@ -23,19 +24,19 @@ export function CartDrawer() {
         onClick={closeCart}
       />
       <aside
-        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-cream shadow-2xl"
+        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-white/10 bg-cream shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-title"
       >
-        <div className="flex items-center justify-between border-b border-cream-dark px-6 py-5">
-          <h2 id="cart-title" className="font-display text-lg font-bold">
-            Cart
+        <div className="flex items-center justify-between bg-asphalt px-6 py-5 text-cream">
+          <h2 id="cart-title" className="font-street text-2xl tracking-wide">
+            Bag
           </h2>
           <button
             type="button"
             onClick={closeCart}
-            className="text-sm font-medium text-muted underline-offset-4 hover:text-ink hover:underline"
+            className="text-xs font-semibold uppercase tracking-wider text-cream/60 underline-offset-4 hover:text-clay"
           >
             Close
           </button>
@@ -57,11 +58,12 @@ export function CartDrawer() {
                       onClick={closeCart}
                       className="h-28 w-20 shrink-0 overflow-hidden bg-cream-dark/30"
                     >
-                      <img
-                        src={product.image}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="h-full w-full object-cover"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
                     </Link>
                     <div className="min-w-0 flex-1">
                       <Link
@@ -131,14 +133,16 @@ export function CartDrawer() {
             <span className="font-semibold tabular-nums">${subtotal.toFixed(2)}</span>
           </div>
           <p className="mt-2 text-xs text-muted">
-            Shipping and taxes calculated at checkout.
+            {PAYMENTS_ENABLED
+              ? 'Shipping and taxes calculated at checkout.'
+              : 'Pre-launch — checkout coming soon. Open your bag to join the waitlist.'}
           </p>
           <Link
             to="/cart"
             onClick={closeCart}
-            className="mt-6 block w-full border border-ink bg-ink py-3.5 text-center text-sm font-semibold uppercase tracking-widest text-cream transition-colors hover:bg-cream hover:text-ink"
+            className="mt-6 block w-full bg-clay py-3.5 text-center text-sm font-bold uppercase tracking-[0.2em] text-cream transition-colors hover:bg-clay-dark"
           >
-            Checkout
+            {PAYMENTS_ENABLED ? 'Checkout' : 'View bag'}
           </Link>
           <button
             type="button"

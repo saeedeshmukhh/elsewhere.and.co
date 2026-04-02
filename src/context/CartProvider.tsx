@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
-import { getProductById } from '../data/products'
+import { getProductById } from '../data/catalog'
 import type { Product } from '../types/product'
+import { canAddProductToCart } from '../lib/cartRules'
 import { CartContext, type CartLine } from './cartContext'
 
 function lineKey(productId: string, size: string, colorId: string) {
@@ -26,6 +27,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       colorId: string
       quantity?: number
     }) => {
+      if (!canAddProductToCart(product)) return
       const key = lineKey(product.id, size, colorId)
       setLines((prev) => {
         const i = prev.findIndex((l) => l.key === key)

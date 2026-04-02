@@ -23,7 +23,7 @@ export function InstagramStrip() {
           <a
             href="https://instagram.com"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="text-sm font-medium text-ink underline-offset-4 hover:underline"
           >
             Follow on Instagram

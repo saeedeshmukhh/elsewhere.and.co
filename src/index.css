@@ -1,15 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --font-family-display: "Syne", ui-sans-serif, system-ui, sans-serif;
-  --font-family-body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-street: "Bebas Neue", "Syne", ui-sans-serif, sans-serif;
+  --font-desi: "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
 
-  --color-cream: #f7f4ef;
-  --color-cream-dark: #ebe6dd;
-  --color-charcoal: #2a2a2a;
-  --color-ink: #0d0d0d;
-  --color-warm-beige: #d4c4b0;
-  --color-muted: #6b6560;
+  --color-cream: #f2efe8;
+  --color-cream-dark: #e2ddd4;
+  --color-charcoal: #2a2826;
+  --color-ink: #0a0a0a;
+  --color-asphalt: #161616;
+  --color-warm-beige: #c9b8a4;
+  --color-muted: #6e6860;
+  /* Terracotta / saffron-adjacent — single accent, not “ethnic pattern” */
+  --color-clay: #c45c3d;
+  --color-clay-dark: #a34a32;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -17,7 +23,7 @@
 @layer base {
   html {
     @apply antialiased scroll-smooth;
-    font-family: var(--font-family-body);
+    font-family: var(--font-body);
     color: var(--color-ink);
     background-color: var(--color-cream);
   }
@@ -27,7 +33,7 @@
   }
 
   ::selection {
-    background-color: var(--color-ink);
+    background-color: var(--color-clay);
     color: var(--color-cream);
   }
 }

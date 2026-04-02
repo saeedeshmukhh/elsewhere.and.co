@@ -1,33 +1,35 @@
 const items = [
   {
     title: 'Premium everyday streetwear',
-    body: 'Heavyweight fabrics and quiet details — made to live in, not just post.',
+    body: 'Heavyweight blanks, sharp graphics — made to live in, not just post.',
   },
   {
-    title: 'Designed around identity and belonging',
-    body: 'Graphics and naming that nod to the cities we leave and the ones we choose.',
+    title: 'Identity, not costume',
+    body: 'Diaspora energy through type and city pairs — never loud “ethnic” filler.',
   },
   {
     title: 'Small-batch drops',
-    body: 'Limited runs so pieces feel personal — not mass-market.',
+    body: 'Limited runs so every piece feels like yours, not everyone’s.',
   },
 ]
 
 export function WhyElsewhere() {
   return (
-    <section className="bg-ink py-24 text-cream md:py-32">
+    <section className="relative border-t border-clay/25 bg-asphalt py-24 text-cream md:py-32">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-clay/60 to-transparent" />
       <div className="mx-auto max-w-[1200px] px-5 md:px-8">
-        <h2 className="font-display text-center text-2xl font-bold md:text-3xl">
-          Why Elsewhere and Co.
-        </h2>
+        <p className="text-center font-street text-[clamp(2.5rem,8vw,4.5rem)] leading-none tracking-tight text-cream/90">
+          WHY <span className="text-clay">ELSEWHERE</span>
+        </p>
+        <p className="mx-auto mt-4 max-w-md text-center font-desi text-sm text-cream/50">
+          एक लेबल · दो दुनियाँ
+        </p>
         <div className="mt-16 grid gap-12 md:grid-cols-3 md:gap-10">
           {items.map((item) => (
             <div key={item.title} className="text-center md:text-left">
-              <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-cream/20 md:mx-0">
-                <span className="block h-2 w-2 rounded-full bg-warm-beige" />
-              </div>
-              <h3 className="font-display text-lg font-semibold">{item.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-cream/70">
+              <div className="mx-auto mb-5 h-px w-12 bg-clay md:mx-0" />
+              <h3 className="font-display text-lg font-bold">{item.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-cream/55">
                 {item.body}
               </p>
             </div>

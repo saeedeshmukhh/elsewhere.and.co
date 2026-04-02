@@ -1,73 +1,86 @@
-# React + TypeScript + Vite
+# Elsewhere & Co.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Premium streetwear storefront: **Roots Remain** collection (five pieces), **Design your own** with Gemini image previews, cart + waitlist (pre-launch — Stripe checkout off).
 
-Currently, two official plugins are available:
+## Live site
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Production:** [https://elsewhereandco.workers.dev](https://elsewhereandco.workers.dev)
 
-## React Compiler
+> If that link does not match your account, open **Cloudflare → Workers & Pages → `elsewhereandco`** and copy the exact `*.workers.dev` hostname (or your custom domain). Update this README if you use a different URL.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Stack
 
-## Expanding the ESLint configuration
+- **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS 4, React Router 7  
+- **Hosting:** Cloudflare Worker (`worker/index.ts`) serving the Vite `dist/` SPA (`wrangler.toml` → `[assets]`)  
+- **API:** `/api/design-preview-images` (Gemini image models), `/api/create-checkout-session` (Stripe — disabled until launch)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Scripts
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+| Command | Purpose |
+|--------|---------|
+| `npm run dev` | Vite dev server (proxies `/api` → `http://127.0.0.1:8787`) |
+| `npm run dev:worker` | Wrangler local Worker + static assets |
+| `npm run build` | Typecheck + production client bundle to `dist/` |
+| `npm run deploy` | `build` + `wrangler deploy` |
+| `npm run lint` | ESLint |
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Local development (full stack)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Install: `npm install`
+2. **Gemini previews:** create `.dev.vars` in the repo root (gitignored):
+
+   ```bash
+   GEMINI_API_KEY=your_key_from_https://aistudio.google.com/apikey
+   ```
+
+3. Two terminals:
+
+   ```bash
+   npm run dev:worker
+   npm run dev
+   ```
+
+4. Open the URL Vite prints (e.g. `http://localhost:5173`). Stop the Worker with **Ctrl+C** in its terminal.
+
+## Deploy (Cloudflare)
+
+1. `npm run deploy` (or CI: `npm run build && npx wrangler deploy`).
+2. Set secrets (never commit them):
+
+   ```bash
+   npx wrangler secret put GEMINI_API_KEY
+   # When payments go live: npx wrangler secret put STRIPE_SECRET_KEY
+   ```
+
+3. Enable checkout later: set `PAYMENTS_ENABLED = true` in `src/config/storefront.ts` and `worker/index.ts`, redeploy, then add `STRIPE_SECRET_KEY`.
+
+More Stripe detail: [PAYMENTS.md](./PAYMENTS.md). Security notes: [SECURITY.md](./SECURITY.md).
+
+## Project layout
+
+```
+src/
+  components/   # layout, home, product, cart, design
+  config/       # storefront flags (e.g. payments on/off)
+  context/      # cart
+  data/         # products, collections, checkout catalog
+  lib/          # checkout, design AI helpers, validation
+  pages/        # routes
+worker/
+  index.ts              # routes + Stripe (when enabled)
+  geminiDesignImages.ts # Design Your Own → Gemini
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Environment
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Variable | Where | Purpose |
+|----------|--------|---------|
+| `GEMINI_API_KEY` | Worker secret or `.dev.vars` | Design preview images (server only) |
+| `STRIPE_SECRET_KEY` | Worker secret | Checkout (when enabled) |
+| `VITE_*` | `.env.local` | Optional client vars — see `.env.example` |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Do **not** put `GEMINI_API_KEY` or Stripe secrets in `VITE_*` variables.
+
+## License
+
+Private — Elsewhere & Co.

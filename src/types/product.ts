@@ -1,4 +1,10 @@
-export type ProductCategory = 'hoodies' | 'sweatshirts' | 't-shirts'
+export type ProductCategory = 'hoodies' | 't-shirts'
+
+export type ShopTag = 'hoodies' | 't-shirts' | 'best-sellers'
+
+export type StockStatus = 'in_stock' | 'low_stock' | 'sold_out' | 'coming_soon'
+
+export type ReleaseBadge = 'first_drop' | 'limited' | 'new'
 
 export interface Product {
   id: string
@@ -6,11 +12,16 @@ export interface Product {
   name: string
   subtitle: string
   price: number
+  /** Optional “was” price — render only when set; never trust client for real pricing in production */
+  compareAtPrice?: number
   category: ProductCategory
-  /** Label shown on home "Roots Remain" (city crossover naming) */
+  /** Shop filters / badges: Hoodies, T-Shirts, Best Sellers */
+  shopTags: ShopTag[]
+  /** Primary collection slug (first-class store grouping) */
+  collectionSlug: string
+  /** Label for cards when you want city-crossover wording */
   rootsLabel: string
   description: string
-  /** Short lines for product detail / cards */
   taglines: string[]
   image: string
   gallery: string[]
@@ -20,6 +31,8 @@ export interface Product {
   fit: string
   shipping: string
   care: string
-  /** Include in "New Drop" filter */
   isNewDrop: boolean
+  stockStatus: StockStatus
+  featured: boolean
+  releaseBadge?: ReleaseBadge
 }

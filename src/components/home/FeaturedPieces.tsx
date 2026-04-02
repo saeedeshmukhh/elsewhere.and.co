@@ -1,24 +1,37 @@
-import { featuredPieceIds, getProductById } from '../../data/products'
-import { ProductCard } from '../product/ProductCard'
+import { Link } from 'react-router-dom'
 
 export function FeaturedPieces() {
-  const items = featuredPieceIds
-    .map((id) => getProductById(id))
-    .filter(Boolean)
-
   return (
-    <section className="bg-cream-dark/15 py-24 md:py-32">
+    <section className="bg-asphalt py-20 md:py-28">
       <div className="mx-auto max-w-[1400px] px-5 md:px-8">
-        <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
-          Featured pieces
-        </h2>
-        <p className="mt-3 max-w-lg text-muted">
-          Selected drops — built for everyday wear and long-distance hearts.
-        </p>
-        <div className="mt-14 grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {items.map((p) =>
-            p ? <ProductCard key={p.id} product={p} showQuickAdd /> : null
-          )}
+        <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cream/50">
+              Elsewhere Lab
+            </p>
+            <h2 className="font-display mt-3 text-3xl font-bold tracking-tight text-cream md:text-4xl">
+              Design your own crossover
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-cream/65">
+              Pick hoodie or tee, choose a base color, and set your US city + home city — we
+              render the same struck-through / bold layout as the drop. No checkout yet; just
+              preview and join the waitlist.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link
+              to="/design-your-own"
+              className="inline-flex min-h-[52px] min-w-[200px] items-center justify-center bg-clay px-8 text-sm font-bold uppercase tracking-[0.2em] text-cream transition-colors hover:bg-clay-dark"
+            >
+              Open designer
+            </Link>
+            <Link
+              to="/shop"
+              className="inline-flex min-h-[52px] items-center justify-center border border-cream/25 px-8 text-sm font-semibold uppercase tracking-widest text-cream transition-colors hover:border-clay hover:text-clay"
+            >
+              Shop five-piece drop
+            </Link>
+          </div>
         </div>
       </div>
     </section>

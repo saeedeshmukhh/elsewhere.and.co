@@ -1,5 +1,6 @@
 import { Hero } from '../components/home/Hero'
 import { FeaturedCollection } from '../components/home/FeaturedCollection'
+import { CollectionPreviews } from '../components/home/CollectionPreviews'
 import { FeaturedPieces } from '../components/home/FeaturedPieces'
 import { BrandStory } from '../components/home/BrandStory'
 import { WhyElsewhere } from '../components/home/WhyElsewhere'
@@ -11,6 +12,7 @@ export function Home() {
     <>
       <Hero />
       <FeaturedCollection />
+      <CollectionPreviews />
       <FeaturedPieces />
       <BrandStory />
       <WhyElsewhere />
